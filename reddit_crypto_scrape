@@ -1,0 +1,39 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+import praw
+
+#webscrape of top 100 coins
+cypto_price = requests.get('CRYPTOPRICE WEBSITE')
+soup = BeautifulSoup(cypto_price.content, 'html.parser')
+
+data = soup.find('script', id="__NEXT_DATA__", type="application/json")
+coins = []
+
+coin_data = json.loads(data.contents[0])
+listings = coin_data['props']['initialState']['cryptocurrency']['listingLatest']['data']
+
+for i in listings:
+    coins.append(i['slug'])
+
+#pulls subreddit subscriber count information for each coin in top 100 list.
+def getUserCount(sub_name):
+    r = praw.Reddit(client_id='',
+                    client_secret = '',
+                    username = '',
+                    password = '',
+                    user_agent = '')
+    subreddit = r.subreddit(sub_name)
+    subscriber_count = subreddit.subscribers
+    subscriber_count_active = subreddit.accounts_active
+    print("Total Subscriber count:", subscriber_count)
+    print("Total Subscribers online:", subscriber_count_active)
+
+for obj in coins:
+    print(obj,":")
+    try:
+        getUserCount(obj)
+    except:
+        print("No subreddit with this name")
+        continue
+
