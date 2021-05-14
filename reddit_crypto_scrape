@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import praw
+import csv
 
 #webscrape of top 100 coins
 cypto_price = requests.get('CRYPTOPRICE WEBSITE')
@@ -15,25 +16,39 @@ listings = coin_data['props']['initialState']['cryptocurrency']['listingLatest']
 
 for i in listings:
     coins.append(i['slug'])
+    
+#updated coin list as some coins names dont align with subreddit names. Will be using this list for the scrape
+coin_list = ['bitcoin', 'ethereum', 'binance-coin', 'dogecoin', 'tether', 'cardano', 'xrp', 'internet-computer', 'polkadot', 'bitcoincash', 'litecoin', 'uniswap', 'chainlink', 'stellar', 'usd-coin', 'vechain', 'solana', 'ethereumclassic', 'eos', 'theta', 'wrapped-bitcoin', 'filecoin', 'tron', 'shiba-inu', 'shibarmy', 'shibainucoin', 'binance-usd', 'monero', 'neo', 'Aave_Official', 'huobi-token', 'bitcoin-sv', 'terra-luna', 'polygon', 'ftx-token', 'iota', 'klaytn', 'maker', 'pancakeswap', 'tezos', 'cosmos', 'multi-collateral-dai', 'avalanche', 'thorchain', 'crypto-com-coin', 'compound', 'bittorrent', 'algorand', 'kusama', 'zcash', 'dash', 'unus-sed-leo', 'waves', 'nem', 'bitcoin-bep2', 'elrond-egld', 'decred', 'yearn-finance', 'chiliz', 'telcoin', 'zilliqa', 'okb', 'revain', 'qtum', 'synthetix-network-token', 'hedera-hashgraph', 'nexo', 'sushiswap', 'decentraland', 'terrausd', 'near-protocol', 'holo', 'stacks', 'bitcoin-gold', 'basic-attention-token', 'ontology', 'enjin-coin', 'digibyte', 'theta-fuel', 'the-graph', 'fantom', 'uma', 'celsius', 'siacoin', 'horizen', 'bancor', 'omg', '0x', 'icon', 'helium', 'ravencoin', 'paxos-standard', 'swissborg', 'venus', 'trueusd', 'harmony', 'celo', 'nano', 'bitcoin-diamond', 'ankr', 'bakerytoken', 'lisk']
+
+#added lists in order to export to csv
+sub_coin_list = []
+subscriber_count_list = []
+subscriber_count_active_list = []
 
 #pulls subreddit subscriber count information for each coin in top 100 list.
 def getUserCount(sub_name):
     r = praw.Reddit(client_id='',
-                    client_secret = '',
-                    username = '',
-                    password = '',
-                    user_agent = '')
+                    client_secret='',
+                    username='',
+                    password='',
+                    user_agent='')
     subreddit = r.subreddit(sub_name)
-    subscriber_count = subreddit.subscribers
-    subscriber_count_active = subreddit.accounts_active
-    print("Total Subscriber count:", subscriber_count)
-    print("Total Subscribers online:", subscriber_count_active)
+    sub_coin_list.append(sub_name)
+    subscriber_count_list.append(subreddit.subscribers)
+    subscriber_count_active_list.append(subreddit.accounts_active)
 
-for obj in coins:
-    print(obj,":")
+for obj in coin_list:
     try:
         getUserCount(obj)
     except:
-        print("No subreddit with this name")
-        continue
+        subscriber_count_list.append(0)
+        subscriber_count_active_list.append(0)
+        
+#  exports data to csv in rows - have to transpose to columns
+with open('results3.csv', 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(['CoinName', 'TotalSubCount', 'ActiveSubCount'])
+    writer.writerow(sub_coin_list)
+    writer.writerow(subscriber_count_list)
+    writer.writerow(subscriber_count_active_list)    
 
