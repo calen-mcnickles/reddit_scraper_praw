@@ -15,10 +15,18 @@ coin_data = json.loads(data.contents[0])
 listings = coin_data['props']['initialState']['cryptocurrency']['listingLatest']['data']
 
 for i in listings:
+    coin_name = i['slug']
+    if '-' in coin_name: # none of the subreddint names contain '-' they have no spaces between the words.
+        tmp = coin_name.replace('-', '')
+        coins.append(tmp)
+    else:
+        coins.append(i['slug'])
+
+for i in listings:
     coins.append(i['slug'])
     
 #updated coin list as some coins names dont align with subreddit names. Will be using this list for the scrape
-coin_list = ['bitcoin', 'ethereum', 'binance-coin', 'dogecoin', 'tether', 'cardano', 'xrp', 'internet-computer', 'polkadot', 'bitcoincash', 'litecoin', 'uniswap', 'chainlink', 'stellar', 'usd-coin', 'vechain', 'solana', 'ethereumclassic', 'eos', 'theta', 'wrapped-bitcoin', 'filecoin', 'tron', 'shiba-inu', 'shibarmy', 'shibainucoin', 'binance-usd', 'monero', 'neo', 'Aave_Official', 'huobi-token', 'bitcoin-sv', 'terra-luna', 'polygon', 'ftx-token', 'iota', 'klaytn', 'maker', 'pancakeswap', 'tezos', 'cosmos', 'multi-collateral-dai', 'avalanche', 'thorchain', 'crypto-com-coin', 'compound', 'bittorrent', 'algorand', 'kusama', 'zcash', 'dash', 'unus-sed-leo', 'waves', 'nem', 'bitcoin-bep2', 'elrond-egld', 'decred', 'yearn-finance', 'chiliz', 'telcoin', 'zilliqa', 'okb', 'revain', 'qtum', 'synthetix-network-token', 'hedera-hashgraph', 'nexo', 'sushiswap', 'decentraland', 'terrausd', 'near-protocol', 'holo', 'stacks', 'bitcoin-gold', 'basic-attention-token', 'ontology', 'enjin-coin', 'digibyte', 'theta-fuel', 'the-graph', 'fantom', 'uma', 'celsius', 'siacoin', 'horizen', 'bancor', 'omg', '0x', 'icon', 'helium', 'ravencoin', 'paxos-standard', 'swissborg', 'venus', 'trueusd', 'harmony', 'celo', 'nano', 'bitcoin-diamond', 'ankr', 'bakerytoken', 'lisk']
+coin_list = ['bitcoin', 'ethereum', 'binancecoin', 'dogecoin', 'tether', 'cardano', 'xrp', 'internetcomputer', 'polkadot', 'bitcoincash', 'litecoin', 'uniswap', 'chainlink', 'stellar', 'usdcoin', 'vechain', 'solana', 'ethereumclassic', 'eos', 'theta', 'wrappedbitcoin', 'filecoin', 'tron', 'shibarmy', 'shibainucoin', 'binanceusd', 'monero', 'neo', 'Aave_Official', 'huobitoken', 'bitcoinsv', 'terraluna', 'polygon', 'ftxtoken', 'iota', 'klaytn', 'maker', 'pancakeswap', 'tezos', 'cosmos', 'multicollateraldai', 'avalanche', 'thorchain', 'cryptocomcoin', 'compound', 'bittorrent', 'algorand', 'kusama', 'zcash', 'dash', 'unussedleo', 'waves', 'nem', 'bitcoinbep2', 'elrondegld', 'decred', 'yearn_finance', 'chiliz', 'telcoin', 'zilliqa', 'okb', 'revain_org', 'qtum', 'synthetix_io', 'hedera', 'nexo', 'sushiswap', 'decentraland', 'terrausd', 'nearprotocol', 'holo', 'stacks', 'BitcoinGoldHQ', 'BasicAttentionToken', 'ontology', 'enjincoin', 'digibyte', 'thetafuel', 'thegraph', 'fantom', 'uma', 'celsius', 'siacoin', 'horizen', 'bancor', 'omg', '0x', 'icon', 'helium', 'ravencoin', 'PaxosStandardToken', 'swissborg', 'venus', 'trueusd', 'harmony', 'celo', 'nano', 'bitcoindiamond', 'ankr', 'bakerytoken', 'lisk']
 
 #added lists in order to export to csv
 sub_coin_list = []
