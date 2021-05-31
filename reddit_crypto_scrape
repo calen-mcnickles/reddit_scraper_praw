@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import praw
 import csv
+from itertools import zip_longest
 from datetime import date
 
 #webscrape of top 100 coins
@@ -23,15 +24,16 @@ for i in listings:
     else:
         coins.append(i['slug'])
 
-#updated coin list as some coins names dont align with subreddit names. Will be using this list for the scrape
+#  updated coin list as some coins names dont align with subreddit names. Will be using this list for the scrape
 coin_list = ['bitcoin', 'ethereum', 'binancecoin', 'dogecoin', 'tether', 'cardano', 'xrp', 'internetcomputer', 'polkadot', 'bitcoincash', 'litecoin', 'uniswap', 'chainlink', 'stellar', 'usdcoin', 'vechain', 'solana', 'ethereumclassic', 'eos', 'theta', 'wrappedbitcoin', 'filecoin', 'tron', 'shibarmy', 'shibainucoin', 'binanceusd', 'monero', 'neo', 'Aave_Official', 'huobitoken', 'bitcoinsv', 'terraluna', 'polygon', 'ftxtoken', 'iota', 'klaytn', 'maker', 'pancakeswap', 'tezos', 'cosmos', 'multicollateraldai', 'avalanche', 'thorchain', 'cryptocomcoin', 'compound', 'bittorrent', 'algorand', 'kusama', 'zcash', 'dash', 'unussedleo', 'waves', 'nem', 'bitcoinbep2', 'elrondegld', 'decred', 'yearn_finance', 'chiliz', 'telcoin', 'zilliqa', 'okb', 'revain_org', 'qtum', 'synthetix_io', 'hedera', 'nexo', 'sushiswap', 'decentraland', 'terrausd', 'nearprotocol', 'holo', 'stacks', 'BitcoinGoldHQ', 'BasicAttentionToken', 'ontology', 'enjincoin', 'digibyte', 'thetafuel', 'thegraph', 'fantom', 'uma', 'celsius', 'siacoin', 'horizen', 'bancor', 'omise_go', '0xProject', 'icon', 'helium', 'ravencoin', 'PaxosStandardToken', 'swissborg', 'venus', 'trueusd', 'harmony', 'celo', 'nano', 'bitcoindiamond', 'ankr', 'bakerytoken', 'lisk']
 
 #added lists in order to export to csv
 sub_coin_list = []
 subscriber_count_list = []
 subscriber_count_active_list = []
+dates = []
 
-#pulls subreddit subscriber count information for each coin in top 100 list.
+#  pulls subreddit subscriber count information for each coin in top 100 list.
 def getUserCount(sub_name):
     r = praw.Reddit(client_id='',
                     client_secret='',
@@ -40,6 +42,7 @@ def getUserCount(sub_name):
                     user_agent='')
     subreddit = r.subreddit(sub_name)
     sub_coin_list.append(sub_name)
+    dates.append(str(date.today()))
     subscriber_count_list.append(subreddit.subscribers)
     subscriber_count_active_list.append(subreddit.accounts_active)
 
@@ -50,11 +53,9 @@ for obj in coin_list:
         subscriber_count_list.append(0)
         subscriber_count_active_list.append(0)
         
-#  exports data to csv in rows - have to transpose to columns
+#  exports data to csv
 with open(str(date.today()) + '_subreddit_scrape.csv', 'w', newline='') as f:
     writer = csv.writer(f)
-    writer.writerow(['CoinName', 'TotalSubCount', 'ActiveSubCount'])
-    writer.writerow(sub_coin_list)
-    writer.writerow(subscriber_count_list)
-    writer.writerow(subscriber_count_active_list)    
+    writer.writerow(['Date', 'CoinName', 'TotalSubCount', 'ActiveSubCount'])
+    writer.writerows(zip_longest(*[dates, sub_coin_list, subscriber_count_list, subscriber_count_active_list]))  
 
