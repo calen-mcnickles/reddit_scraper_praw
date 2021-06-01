@@ -4,7 +4,8 @@ import json
 import praw
 import csv
 from itertools import zip_longest
-from datetime import date
+from datetime import date, datetime
+import sqlite3
 
 #webscrape of top 100 coins
 cypto_price = requests.get('CRYPTOPRICE WEBSITE')
@@ -25,13 +26,21 @@ for i in listings:
         coins.append(i['slug'])
 
 #  updated coin list as some coins names dont align with subreddit names. Will be using this list for the scrape
-coin_list = ['bitcoin', 'ethereum', 'binancecoin', 'dogecoin', 'tether', 'cardano', 'xrp', 'internetcomputer', 'polkadot', 'bitcoincash', 'litecoin', 'uniswap', 'chainlink', 'stellar', 'usdcoin', 'vechain', 'solana', 'ethereumclassic', 'eos', 'theta', 'wrappedbitcoin', 'filecoin', 'tron', 'shibarmy', 'shibainucoin', 'binanceusd', 'monero', 'neo', 'Aave_Official', 'huobitoken', 'bitcoinsv', 'terraluna', 'polygon', 'ftxtoken', 'iota', 'klaytn', 'maker', 'pancakeswap', 'tezos', 'cosmos', 'multicollateraldai', 'avalanche', 'thorchain', 'cryptocomcoin', 'compound', 'bittorrent', 'algorand', 'kusama', 'zcash', 'dash', 'unussedleo', 'waves', 'nem', 'bitcoinbep2', 'elrondegld', 'decred', 'yearn_finance', 'chiliz', 'telcoin', 'zilliqa', 'okb', 'revain_org', 'qtum', 'synthetix_io', 'hedera', 'nexo', 'sushiswap', 'decentraland', 'terrausd', 'nearprotocol', 'holo', 'stacks', 'BitcoinGoldHQ', 'BasicAttentionToken', 'ontology', 'enjincoin', 'digibyte', 'thetafuel', 'thegraph', 'fantom', 'uma', 'celsius', 'siacoin', 'horizen', 'bancor', 'omise_go', '0xProject', 'icon', 'helium', 'ravencoin', 'PaxosStandardToken', 'swissborg', 'venus', 'trueusd', 'harmony', 'celo', 'nano', 'bitcoindiamond', 'ankr', 'bakerytoken', 'lisk']
+coin_list = ['bitcoin', 'ethereum', 'binancecoin', 'dogecoin', 'tether', 'cardano', 'xrp', 'internetcomputer', 'polkadot', 'bitcoincash', 'litecoin', 'uniswap', 'chainlink',
+             'stellar', 'usdcoin', 'vechain', 'solana', 'ethereumclassic', 'eos', 'theta', 'wrappedbitcoin', 'filecoin', 'tron', 'shibarmy', 'shibainucoin', 'binanceusd', 'monero',
+             'neo', 'Aave_Official', 'huobitoken', 'bitcoinsv', 'terraluna', 'polygon', 'ftxtoken', 'iota', 'klaytn', 'maker', 'pancakeswap', 'tezos', 'cosmos', 'multicollateraldai',
+             'avalanche', 'thorchain', 'cryptocomcoin', 'compound', 'bittorrent', 'algorand', 'kusama', 'zcash', 'dash', 'unussedleo', 'waves', 'nem', 'bitcoinbep2', 'elrondegld',
+             'decred', 'yearn_finance', 'chiliz', 'telcoin', 'zilliqa', 'okb', 'revain_org', 'qtum', 'synthetix_io', 'hedera', 'nexo', 'sushiswap', 'decentraland', 'terrausd',
+             'nearprotocol', 'holo', 'stacks', 'BitcoinGoldHQ', 'BasicAttentionToken', 'ontology', 'enjincoin', 'digibyte', 'thetafuel', 'thegraph', 'fantom', 'uma', 'celsius',
+             'siacoin', 'horizen', 'bancor', 'omise_go', '0xProject', 'icon', 'helium', 'ravencoin', 'PaxosStandardToken', 'swissborg', 'venus', 'trueusd', 'harmony', 'celo', 'nano',
+             'bitcoindiamond', 'ankr', 'bakerytoken', 'lisk']
 
-#added lists in order to export to csv
+#  pulls subreddit count information for each coin in top 100 list.
+dates = []
+id = [(i + 1) for i in range(0, len(coin_list))]
 sub_coin_list = []
 subscriber_count_list = []
 subscriber_count_active_list = []
-dates = []
 
 #  pulls subreddit subscriber count information for each coin in top 100 list.
 def getUserCount(sub_name):
@@ -41,8 +50,8 @@ def getUserCount(sub_name):
                     password='',
                     user_agent='')
     subreddit = r.subreddit(sub_name)
+    dates.append(datetime.now().strftime("%Y/%m/%d %H:%M"))
     sub_coin_list.append(sub_name)
-    dates.append(str(date.today()))
     subscriber_count_list.append(subreddit.subscribers)
     subscriber_count_active_list.append(subreddit.accounts_active)
 
@@ -56,6 +65,42 @@ for obj in coin_list:
 #  exports data to csv
 with open(str(date.today()) + '_subreddit_scrape.csv', 'w', newline='') as f:
     writer = csv.writer(f)
-    writer.writerow(['Date', 'CoinName', 'TotalSubCount', 'ActiveSubCount'])
-    writer.writerows(zip_longest(*[dates, sub_coin_list, subscriber_count_list, subscriber_count_active_list]))  
+    writer.writerow(['Date', 'ID', 'CoinName', 'TotalSubCount', 'ActiveSubCount'])
+    writer.writerows(zip_longest(*[dates, id, sub_coin_list, subscriber_count_list, subscriber_count_active_list]))
 
+#  function to make tuple of lists
+def merge(list1, list2, list3, list4, list5):
+    merged_list = [(list1[i], list2[i], list3[i], list4[i], list5[i]) for i in range(0, len(list1))]
+    return merged_list
+
+#  tuple of lists used for sqlite export
+coin_tuple = merge(dates, id, sub_coin_list, subscriber_count_list, subscriber_count_active_list)
+
+#  exports data to Sqlite db
+conn = sqlite3.connect('reddit_crypto_scrape.sqlite')
+curr = conn.cursor()
+
+#  creates Reddit_coins table in database. Can remove if table already created and want to add data to existing table.
+curr.executescript('''
+DROP TABLE IF EXISTS Reddit_Coins;
+
+CREATE TABLE Reddit_Coins (
+    Date TEXT,
+    ID INTEGER,
+    Sub_Coin_List TEXT,
+    Subscriber_Count_List INTEGER,
+    Subscriber_Count_Active_List INTEGER
+);
+''')
+
+#  query adding inserting data into database
+sqlite_insert_query = '''
+INSERT INTO Reddit_Coins
+    (Date, ID, Sub_Coin_List,  Subscriber_Count_List, Subscriber_Count_Active_List)
+    VALUES
+    (?, ?, ?, ?, ?);
+'''
+
+curr.executemany(sqlite_insert_query, coin_tuple)
+conn.commit()
+conn.close()
