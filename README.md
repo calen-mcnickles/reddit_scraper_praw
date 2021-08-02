@@ -8,5 +8,5 @@ Scrape top 100 crypto subreddits to explore correlation between price movement a
 * Upvotes on posts
 * Key words
 
-
+In order to get this to work you will need to tweak the webscraper and include your personal reddit API information. 
   
