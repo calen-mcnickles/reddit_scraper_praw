@@ -6,6 +6,7 @@ import csv
 from itertools import zip_longest
 from datetime import date, datetime
 import sqlite3
+import pandas as pd
 
 #webscrape of top 100 coins
 cypto_price = requests.get('CRYPTOPRICE WEBSITE')
@@ -62,8 +63,16 @@ for obj in coin_list:
         subscriber_count_list.append(0)
         subscriber_count_active_list.append(0)
         
-#  exports data to csv
-with open(str(date.today()) + '_subreddit_scrape.csv', 'w', newline='') as f:
+# --------- Two options for exporting to csv ---------
+
+# 1. exports data to csv using pandas
+coin_csv_dict = {'Date': dates, 'ID': id, 'CoinName': sub_coin_list, 'TotalSubCount': subscriber_count_list,
+                 'ActiveSubCount': subscriber_count_active_list}
+df = pd.DataFrame.from_dict(coin_csv_dict)
+df.to_csv('subreddit_scrape_github_1.csv', index=False)
+
+# 2. exports data to csv using writer + zip_longest
+with open(str(date.today()) + 'subreddit_scrape_github_2.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['Date', 'ID', 'CoinName', 'TotalSubCount', 'ActiveSubCount'])
     writer.writerows(zip_longest(*[dates, id, sub_coin_list, subscriber_count_list, subscriber_count_active_list]))
