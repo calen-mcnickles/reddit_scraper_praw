@@ -7,6 +7,7 @@ from itertools import zip_longest
 from datetime import date, datetime
 import sqlite3
 import pandas as pd
+from sqlalchemy import create_engine
 
 #webscrape of top 100 coins
 cypto_price = requests.get('CRYPTOPRICE WEBSITE')
@@ -63,6 +64,9 @@ for obj in coin_list:
         subscriber_count_list.append(0)
         subscriber_count_active_list.append(0)
         
+        
+        
+        
 # --------- Two options for exporting to csv ---------
 
 # 1. exports data to csv using pandas
@@ -76,6 +80,22 @@ with open(str(date.today()) + 'subreddit_scrape_github_2.csv', 'w', newline='') 
     writer = csv.writer(f)
     writer.writerow(['Date', 'ID', 'CoinName', 'TotalSubCount', 'ActiveSubCount'])
     writer.writerows(zip_longest(*[dates, id, sub_coin_list, subscriber_count_list, subscriber_count_active_list]))
+    
+    
+    
+    
+# --------- Two options for exporting to sqlite ---------
+
+# 1. Using sqlalchemy and the pandas db
+engine = create_engine('sqlite:///reddit_crypto_scrape.sqlite', echo=True)
+sqlite_connection = engine.connect()
+
+sqlite_table = "Reddit_coins"
+df.to_sql(sqlite_table, sqlite_connection, if_exists='fail')
+
+sqlite_connection.close()
+
+# 2. My original version...
 
 #  function to make tuple of lists
 def merge(list1, list2, list3, list4, list5):
